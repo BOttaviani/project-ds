@@ -1,1 +1,8 @@
-Fichiers utilisés pour le projet STA211
+# Projet
+
+Support, données et notebooks pour le cours STA211
+
+
+## Auteur
+
+* **Denis DUPONT**
