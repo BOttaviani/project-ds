@@ -1,1 +1,5 @@
-Fichiers utilisés pour le projet RCP216
+# Fichiers utilisés pour le projet RCP216
+
+## Auteur
+
+* **Denis DUPONT**
