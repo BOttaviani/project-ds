@@ -15,12 +15,4 @@ dependencies:
   - sqlite
   - statsmodels
   - tensorflow
-  - pip:
-   - warnings
-   - os
-   - datetime
-   - graphviz
-   - pandas_profiling
-   - pylab
-   - pymongo
 
