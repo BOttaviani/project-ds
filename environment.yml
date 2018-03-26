@@ -2,7 +2,6 @@ name: Denis
 channels:
   - defaults
 dependencies:
-  - os
   - datetime
   - graphviz
   - keras
