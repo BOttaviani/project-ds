@@ -6,7 +6,6 @@ dependencies:
   - matplotlib
   - numpy
   - pandas
-  - pandas_profiling
   - pylab
   - pymongo
   - patsy
