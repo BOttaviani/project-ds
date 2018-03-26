@@ -2,8 +2,6 @@ name: Denis
 channels:
   - defaults
 dependencies:
-  - datetime
-  - graphviz
   - keras
   - matplotlib
   - numpy
@@ -20,4 +18,3 @@ dependencies:
   - sqlite
   - statsmodels
   - tensorflow
-  - warnings
