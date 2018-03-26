@@ -1,0 +1,24 @@
+name: Denis
+channels:
+  - defaults
+dependencies:
+  - os
+  - datetime
+  - graphviz
+  - keras
+  - matplotlib
+  - numpy
+  - pandas
+  - pandas_profiling
+  - pylab
+  - pymongo
+  - patsy
+  - pprint
+  - scikit-learn
+  - scipy
+  - seaborn
+  - sqlalchemy
+  - sqlite
+  - statsmodels
+  - tensorflow
+  - warnings
