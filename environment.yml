@@ -6,8 +6,6 @@ dependencies:
   - matplotlib
   - numpy
   - pandas
-  - pylab
-  - pymongo
   - patsy
   - pprint
   - scikit-learn
@@ -17,3 +15,12 @@ dependencies:
   - sqlite
   - statsmodels
   - tensorflow
+  - pip:
+   - warnings
+   - os
+   - datetime
+   - graphviz
+   - pandas_profiling
+   - pylab
+   - pymongo
+
