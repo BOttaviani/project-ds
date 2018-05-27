@@ -11,4 +11,4 @@ Les repertoires suivants sont constitués :
 * Projets Gephi => certains fichiers Gephi utilisés dans le cadre du projet
 
 ## Auteur
-* **Denis DUPONT**
+* **Denis DUPONT et Bernard OTTAVIOANI**
