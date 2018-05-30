@@ -47,8 +47,10 @@ codes_IATA.createOrReplaceTempView("codes_IATA")
 aeroports_noeuds.createOrReplaceTempView("aeroports_noeuds")
 
 //SELECTION DES DONNEES SERVANT A LA CONSTRUCTION DU GRAPHE A PARTIR DE LA TABLE DES NOEUDS
-val Noeuds = spark.sql("select distinct id, code_source from (select id, code_source from aeroports_noeuds where id not like '%N' and code_source not like '%N' union select num_dest, code_dest from aeroports_noeuds)")
+val Noeuds = spark.sql("select distinct id, code_source from (select id, code_source from aeroports_noeuds where id not like '%N' union select num_dest, code_dest from aeroports_noeuds where num_dest not like '%N')")
 Noeuds.createOrReplaceTempView("Noeuds")
+
+//DETERMINATION DE L'ORDRE DU GRAPHE - COMPTAGE DES NOEUDS
 spark.sql("select count(*) as nb_Noeuds from Noeuds").show
 
 //LECTURE DU FICHIER D'ENTREE A L'AIDE DE LA STRUCTURE DES LIENS DEFINIE PLUS HAUT
@@ -59,6 +61,8 @@ aeroports_liens.createOrReplaceTempView("aeroports_liens")
 
 val Liens = spark.sql("select distinct a.src, a.dst from aeroports_liens a where src not like '%N' and dst not like '%N'")
 Liens.createOrReplaceTempView("Liens")
+
+//COMPTAGE DES LIENS
 spark.sql("select count(*) as nb_Liens from Liens").show
 
 //CONSTRUCTION DU GRAPHE
@@ -92,6 +96,9 @@ nb_voisins.createOrReplaceTempView("nb_voisins")
 spark.sql("select inDegree as degres_entrants from degres_entrants").describe().show
 spark.sql("select outDegree as degres_sortants from degres_sortants").describe().show
 spark.sql("select degree as plus_proches_voisins from nb_voisins").describe().show
+//Seuls 3 aéroports n'ont pas de plus proches voisins, car ils sont en lien
+//avec des aéroports non identifiés
+spark.sql("select a.id, a.code_source as IATA_sans_voisin from Noeuds a left outer join nb_voisins b on b.id = a.id where b.id is null").show
 //Tops 5 des degrés entrants, sortants, et du nombre de voisins
 spark.sql("select a.code_source as code_IATA, b.inDegree as degres_entrants from Noeuds a inner join degres_entrants b on b.id = a.id order by b.inDegree desc").show(5)
 spark.sql("select a.code_source as code_IATA, b.outDegree as degres_sortants from Noeuds a inner join degres_sortants b on b.id = a.id order by b.outDegree desc").show(5)
@@ -179,15 +186,24 @@ spark.sql("select distinct l.id, a.code_source as code_IATA, d.ville, d.code_pay
 spark.sql("select sum(nbre) from(select label, count(*) as nbre from LPA group by label order by nbre desc)").show
 
 //8- TABLES POUR CALCUL MODULARITE
-val table_Q1 = spark.sql("select a.src, b.code_source as code_src, d.degree as deg_src, f.label as lab_src, a.dst, c.code_source as code_dst, e.degree as deg_dst, g.label as lab_dst from Liens a inner join Noeuds b on b.id = a.src inner join Noeuds c on c.id = a.dst inner join nb_voisins d on d.id = a.src inner join nb_voisins e on e.id = a.dst inner join LPA f on f.id = a.src inner join LPA g on g.id = a.dst")
-table_Q1.createOrReplaceTempView("table_Q1")
-val table_Q2 = table_Q1.crossJoin(nb_liens)
-table_Q2.createOrReplaceTempView("table_Q2")
-val table_Q3 = spark.sql("select lab_src, lab_dst, deg_src, deg_dst, case when lab_src = lab_dst then cast((deg_src*deg_dst)/(2*nb_liens) as decimal (5,2)) else 0 end as produit from table_Q2")
-table_Q3.createOrReplaceTempView("table_Q3")
-val somme_produit = spark.sql("select cast(sum(produit) as decimal(7,2)) as somme_produit from table_Q3")
-somme_produit.createOrReplaceTempView("somme_produit")
-val table_Q4 = somme_produit.crossJoin(nb_liens)
-table_Q4.createOrReplaceTempView("table_Q4")
-spark.sql("select cast(1-((somme_produit)/(2*nb_liens)) as decimal (5,4)) as modularite from table_Q4").show
+//Construction de la table rassemblant les labels de communauté, les noeuds, et les degrés
+val noeuds_enrichis = spark.sql("select a.label, b.id as aeroport, c.degree as degre from LPA a inner join Noeuds b on b.id = a.id inner join nb_voisins c on c.id = a.id")
+noeuds_enrichis.createOrReplaceTempView("noeuds_enrichis")
+//Calcul de la double somme sur égalité des labels de communauté pour des noeuds différents
+val double_somme = spark.sql("select a.label as label_depart, a.aeroport as depart, a.degre as degre_depart, b.label as label_arrivee, b.aeroport as arrivee, b.degre as degre_arrivee from noeuds_enrichis a inner join noeuds_enrichis b on b.label = a.label and a.aeroport <> b.aeroport") 
+double_somme.createOrReplaceTempView("double_somme")
+//Ajout du nombre de liens à la double somme pour calcul du produit
+val double_somme_enrichie = double_somme.crossJoin(nb_liens)
+double_somme_enrichie.createOrReplaceTempView("double_somme_enrichie")
+//Construction de la table des produits
+val produits = spark.sql("select a.*, cast((degre_depart * degre_arrivee )/(2*nb_liens) as decimal(7,2)) as produit from double_somme_enrichie a") 
+produits.createOrReplaceTempView("produits")
+//Construction de la somme des produits
+val somme_produits = spark.sql("select sum(produit) as somme_produits from produits")
+somme_produits.createOrReplaceTempView("somme_produits")
+val delta  = somme_produits.crossJoin(nb_liens)
+delta.createOrReplaceTempView("delta")
+//Le nombre Aij est égal au double du nombre de liens, étant donné que les couples
+//sont comptés 2 fois dans la double somme
+spark.sql("select cast((2*nb_liens - somme_produits)/(2*nb_liens) as decimal(5,4)) as modularite from delta").show
 
