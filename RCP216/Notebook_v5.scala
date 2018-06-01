@@ -68,11 +68,16 @@ spark.sql("select count(*) as nb_Liens from Liens").show
 //CONSTRUCTION DU GRAPHE
 val Graphe_aeroports = GraphFrame(Noeuds, Liens)
 
-//1- POIDS DES DIFFERENTES LIGNES EN FONCTION DU NOMBRE DE COMPAGNIES EXPLOITANTES (EN TENANT COMPTE DE TOUS LES LIENS) 
+//POIDS DES LIENS
+//1a- Sans le nom des villes 
+val Poids_Liens = spark.sql("select a.depart, b.ville, a.arrivee, c.ville, a.poids from(select code_source as depart, code_dest as arrivee, count(*) as poids from aeroports_liens where src not like '%N' and dst not like '%N' group by depart, arrivee order by poids desc, depart asc) as a")
+Poids_Liens_orientes.createOrReplaceTempView("Poids_Liens_orientes")
+
+//1b- Avec le nom des villes 
 val Poids_Liens_orientes = spark.sql("select a.depart, b.ville, a.arrivee, c.ville, a.poids from(select code_source as depart, code_dest as arrivee, count(*) as poids from aeroports_liens where src not like '%N' and dst not like '%N' group by depart, arrivee order by poids desc, depart asc) as a inner join codes_IATA b on b.code_IATA = a.depart inner join codes_IATA c on c.code_IATA = a.arrivee")
 Poids_Liens_orientes.createOrReplaceTempView("Poids_Liens_orientes")
 //Statistiques élémentaires
-spark.sql("select poids from Poids_Liens_orientes").describe().show
+spark.sql("select poids from Poids_Liens").describe().show
 //Top 5
 Poids_Liens_orientes.show(5)
 
