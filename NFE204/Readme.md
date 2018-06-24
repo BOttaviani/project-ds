@@ -1,8 +1,9 @@
-# Projet
+# Projet NFE204 - Bases de données documentaires et distribuées
 
-Support, données et notebooks pour le cours NFE204
+Support, données et notebooks pour le projet NFE204 sur l'analyse de la base de données orienté graphes OrientDB
 
 
-## Auteur
+## Auteurs
 
-* **Denis DUPONT**
+* **Denis DUPONT et Bernard OTTAVIANI**
+

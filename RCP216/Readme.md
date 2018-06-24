@@ -1,4 +1,4 @@
-# Fichiers utilisés pour le projet RCP216
+# Projet RCP216 : Analyse de données massives et visualisation
 
 Le projet principal en Spark-Scala est disponible sous 2 formes :
   - Scala pur : Notebook_v5.scala
@@ -11,5 +11,5 @@ Les repertoires suivants sont constitués :
 * Images => un certain nombre d'images générées avec Gephi
 * Projets Gephi => certains fichiers Gephi utilisés dans le cadre du projet
 
-## Auteur
-* **Denis DUPONT et Bernard OTTAVIOANI**
+## Auteurs
+* **Denis DUPONT et Bernard OTTAVIANI**

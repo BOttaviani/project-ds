@@ -1,4 +1,4 @@
-# Projet
+# Projet STA211 : Entreposage et fouille de données
 
 Support, données et notebooks pour le cours STA211
 
